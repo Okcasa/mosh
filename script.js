@@ -134,13 +134,22 @@ function displayGrid(titles, containerId, isGrid = false) {
         div.className = `movie-card group animate-fade`;
         div.style.animationDelay = `${index * 50}ms`;
         
+        // Use a lower quality/smaller image from IMDb if possible (append ._V1_UX300_.jpg)
+        let posterUrl = title.primaryImage?.url || 'https://via.placeholder.com/300x450?text=No+Image';
+        if (posterUrl.includes('amazon-adsystem.com') || posterUrl.includes('m.media-amazon.com')) {
+            // Optimization: Request a smaller version from IMDb CDN
+            posterUrl = posterUrl.replace(/\._V1_.*\.jpg$/, '._V1_UX300_.jpg');
+        }
+
         div.innerHTML = `
             <div class="w-full aspect-[2/3] bg-white/5 flex items-center justify-center overflow-hidden">
-                <img src="${title.primaryImage?.url || 'https://via.placeholder.com/300x450?text=No+Image'}" 
+                <img src="${posterUrl}" 
                      alt="${title.primaryTitle}" 
                      loading="lazy"
                      class="w-full h-full object-cover"
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex'">
+>>>>+++ REPLACE
+
                 <div class="absolute inset-0 flex flex-col items-center justify-center p-4 text-center hidden">
                     <svg class="w-8 h-8 text-white/10 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg>
                     <span class="text-[10px] font-bold uppercase tracking-widest text-white/20">${title.primaryTitle}</span>
