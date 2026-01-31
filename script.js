@@ -134,10 +134,9 @@ function displayGrid(titles, containerId, isGrid = false) {
         div.className = `movie-card group animate-fade`;
         div.style.animationDelay = `${index * 50}ms`;
         
-        // Use a lower quality/smaller image from IMDb if possible (append ._V1_UX300_.jpg)
+        // Optimization: Request a smaller version from IMDb CDN
         let posterUrl = title.primaryImage?.url || 'https://via.placeholder.com/300x450?text=No+Image';
-        if (posterUrl.includes('amazon-adsystem.com') || posterUrl.includes('m.media-amazon.com')) {
-            // Optimization: Request a smaller version from IMDb CDN
+        if (posterUrl.includes('m.media-amazon.com')) {
             posterUrl = posterUrl.replace(/\._V1_.*\.jpg$/, '._V1_UX300_.jpg');
         }
 
