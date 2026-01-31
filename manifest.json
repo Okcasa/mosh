@@ -1,0 +1,22 @@
+{
+    "name": "MOSH Cinematic",
+    "short_name": "MOSH",
+    "description": "The Ultimate Cinematic Interface for Movies, Series, and Live Sports.",
+    "start_url": "index.html",
+    "display": "standalone",
+    "background_color": "#000000",
+    "theme_color": "#000000",
+    "orientation": "any",
+    "icons": [
+        {
+            "src": "../ChatGPT_Image_Jan_30__2026__07_58_23_PM-removebg-preview.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "../ChatGPT_Image_Jan_30__2026__07_58_23_PM-removebg-preview.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}

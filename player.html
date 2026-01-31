@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <link rel="apple-touch-icon" href="../ChatGPT_Image_Jan_30__2026__07_58_23_PM-removebg-preview.png">
+    <link rel="manifest" href="manifest.json">
+    <title>MOSH - Player</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #000;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .mosh-glow {
+            text-shadow: 0 0 30px rgba(229, 9, 20, 0.8);
+        }
+    </style>
+</head>
+<body class="bg-black text-white min-h-screen">
+    <!-- Header -->
+    <header class="fixed top-0 w-full z-50 px-6 py-4 glass border-b border-white/5">
+        <div class="max-w-7xl mx-auto flex items-center justify-between">
+            <div class="flex items-center gap-4">
+                <button id="backButton" class="w-10 h-10 rounded-xl bg-white/5 text-white flex items-center justify-center hover:bg-red-600 transition-all">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/></svg>
+                </button>
+                <div id="headerTitleInfo" class="flex flex-col">
+                    <h1 id="titleName" class="text-lg font-black uppercase tracking-tight leading-none">Loading...</h1>
+                    <p id="titleMeta" class="text-[10px] font-bold text-red-500 uppercase tracking-widest mt-1"></p>
+                </div>
+            </div>
+            <div class="hidden sm:block">
+                <img src="../ChatGPT_Image_Jan_30__2026__07_58_23_PM-removebg-preview.png" class="w-8 h-8 object-contain" alt="M">
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Player Area -->
+    <main class="pt-24 pb-12 px-4 sm:px-6 max-w-7xl mx-auto">
+        <div class="glass rounded-3xl overflow-hidden shadow-2xl border-white/10 mb-8">
+            <div class="aspect-video w-full bg-black">
+                <iframe id="videoPlayer" src="about:blank" class="w-full h-full" allowfullscreen allow="autoplay; fullscreen"></iframe>
+            </div>
+        </div>
+
+        <!-- Info & Controls Area -->
+        <div id="playerDetails" class="glass rounded-3xl p-6 sm:p-8 border-white/10">
+            <div class="flex flex-col md:flex-row gap-8 items-start">
+                <img id="playerPoster" src="" class="w-32 sm:w-48 rounded-2xl shadow-2xl border border-white/10 hidden">
+                <div class="flex-1 space-y-6">
+                    <div>
+                        <h2 id="mainTitle" class="text-3xl sm:text-5xl font-black uppercase tracking-tighter mb-4"></h2>
+                        <div id="metadataContainer" class="flex flex-wrap items-center gap-4 text-xs font-bold">
+                            <!-- Populated via JS -->
+                        </div>
+                    </div>
+                    
+                    <p id="plotText" class="text-white/60 text-sm sm:text-base leading-relaxed max-w-4xl font-medium"></p>
+                    
+                    <div class="flex flex-wrap gap-6 items-end">
+                        <div class="flex items-center gap-3">
+                            <div class="bg-white/[0.03] p-4 rounded-2xl border border-white/5">
+                                <p class="text-[10px] uppercase font-black text-white/20 mb-1 tracking-widest">TMDb Reference</p>
+                                <div class="flex items-center gap-3">
+                                    <span id="tmdbIdDisplay" class="font-mono text-green-400 font-black text-lg select-all"></span>
+                                    <button id="copyId" class="text-white/20 hover:text-white transition-colors">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3"/></svg>
+                                    </button>
+                                </div>
+                            </div>
+                            <button id="playerTypeSwap" class="bg-red-600/10 border border-red-600/30 text-red-500 p-4 rounded-2xl hover:bg-red-600 hover:text-white transition-all group flex flex-col items-center justify-center gap-1">
+                                <svg class="w-5 h-5 group-hover:rotate-180 transition-transform duration-500" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4"/></svg>
+                                <span id="swapText" class="text-[8px] font-black uppercase tracking-widest">Switch</span>
+                            </button>
+                        </div>
+
+                        <div id="tvControls" class="flex gap-4 hidden">
+                            <div class="space-y-2">
+                                <label class="text-[10px] uppercase font-black text-white/40 ml-1 tracking-widest">Season</label>
+                                <select id="seasonSelect" class="w-36 bg-zinc-900 border border-white/20 rounded-xl px-4 py-2.5 text-xs font-black text-white outline-none focus:border-red-600 transition-all cursor-pointer"></select>
+                            </div>
+                            <div class="space-y-2">
+                                <label class="text-[10px] uppercase font-black text-white/40 ml-1 tracking-widest">Episode</label>
+                                <select id="episodeSelect" class="w-36 bg-zinc-900 border border-white/20 rounded-xl px-4 py-2.5 text-xs font-black text-white outline-none focus:border-red-600 transition-all cursor-pointer"></select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script src="player.js"></script>
+</body>
+</html>

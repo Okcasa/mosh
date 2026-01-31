@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="MOSH">
+    <link rel="apple-touch-icon" href="../ChatGPT_Image_Jan_30__2026__07_58_23_PM-removebg-preview.png">
+    <link rel="manifest" href="manifest.json">
+    <title>MOSH - Watch Movies & TV Shows</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+        
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #000;
+        }
+
+        .glass {
+            background: rgba(255, 255, 255, 0.03);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+        }
+
+        .mosh-glow {
+            text-shadow: 0 0 30px rgba(229, 9, 20, 0.8);
+        }
+
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+
+        .no-scrollbar {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            scroll-behavior: smooth;
+        }
+
+        .poster-card {
+            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .poster-card:hover {
+            transform: scale(1.05) translateY(-5px);
+            z-index: 10;
+        }
+
+        .category-gradient {
+            background: linear-gradient(180deg, rgba(0,0,0,0) 0%, rgba(229, 9, 20, 0.05) 100%);
+        }
+    </style>
+</head>
+<body class="text-white selection:bg-red-600/30">
+    
+    <!-- Navigation Bar -->
+    <nav class="fixed top-0 w-full z-50 px-4 py-4 sm:px-6">
+        <div class="max-w-7xl mx-auto glass rounded-2xl px-4 py-2 sm:px-6 sm:py-3 flex items-center justify-between shadow-2xl">
+            <div id="logoHome" class="flex items-center gap-2 sm:gap-3 group cursor-pointer shrink-0">
+                <img src="../ChatGPT_Image_Jan_30__2026__07_58_23_PM-removebg-preview.png" class="w-8 h-8 sm:w-10 sm:h-10 object-contain group-hover:scale-110 transition-transform drop-shadow-[0_0_10px_rgba(220,38,38,0.5)]" alt="M">
+                <h1 class="text-xl sm:text-2xl font-black tracking-tighter mosh-glow uppercase hidden sm:block">Mosh</h1>
+            </div>
+
+            <div class="flex-1 max-w-md mx-4 sm:mx-8">
+                <div class="relative">
+                    <input type="text" id="searchInput" placeholder="Search..." 
+                           class="w-full bg-white/5 border border-white/10 rounded-xl px-10 py-2 sm:px-12 sm:py-2.5 outline-none focus:border-red-600/50 focus:bg-white/10 transition-all text-xs sm:text-sm">
+                    <div class="absolute left-3 sm:left-4 top-1/2 -translate-y-1/2 text-white/30">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex items-center gap-3 sm:gap-6">
+                <div class="hidden md:flex items-center gap-6 text-sm font-bold text-white/50">
+                    <button id="showMovies" class="hover:text-red-500 transition-colors">Movies</button>
+                    <button id="showShows" class="hover:text-red-500 transition-colors">Shows</button>
+                    <button id="showSports" class="hover:text-red-500 transition-colors">Sports</button>
+                </div>
+                <div class="w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-red-600/10 border border-red-600/30 flex items-center justify-center cursor-pointer hover:bg-red-600 transition-colors group shrink-0">
+                    <svg class="w-4 h-4 sm:w-5 sm:h-5 text-red-500 group-hover:text-white transition-colors" fill="currentColor" viewBox="0 0 20 20"><path d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z"/></svg>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Mobile Bottom Navigation -->
+    <div class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 md:hidden w-[90%] max-w-sm">
+        <div class="glass rounded-2xl p-2 flex items-center justify-between shadow-2xl border-white/10 backdrop-blur-2xl">
+            <button id="mobileHome" class="flex-1 flex flex-col items-center gap-1 p-2 text-red-500">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/></svg>
+                <span class="text-[8px] font-black uppercase tracking-widest">Home</span>
+            </button>
+            <button id="mobileMovies" class="flex-1 flex flex-col items-center gap-1 p-2 text-white/30">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 4v16M17 4v16M3 8h4m10 0h4M3 12h18M3 16h4m10 0h4M4 20h16a1 1 0 001-1V5a1 1 0 00-1-1H4a1 1 0 00-1 1v14a1 1 0 001 1z"/></svg>
+                <span class="text-[8px] font-black uppercase tracking-widest">Movies</span>
+            </button>
+            <button id="mobileShows" class="flex-1 flex flex-col items-center gap-1 p-2 text-white/30">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
+                <span class="text-[8px] font-black uppercase tracking-widest">Shows</span>
+            </button>
+            <button id="mobileSports" class="flex-1 flex flex-col items-center gap-1 p-2 text-white/30">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"/></svg>
+                <span class="text-[8px] font-black uppercase tracking-widest">Sports</span>
+            </button>
+        </div>
+    </div>
+
+    <main class="pt-32 pb-20 px-6 max-w-7xl mx-auto">
+        <!-- Search Results Section -->
+        <section id="searchResults" class="hidden mb-16 animate-in fade-in slide-in-from-top-4 duration-500">
+            <h2 class="text-2xl font-black mb-8 flex items-center gap-3">
+                <span class="w-2 h-8 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)]"></span>
+                Results for your search
+            </h2>
+            <div id="searchGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-6"></div>
+        </section>
+
+        <!-- Player Section -->
+        <div id="playerSection" class="mb-16 hidden animate-in zoom-in duration-700">
+            <div class="glass rounded-3xl overflow-hidden shadow-[0_0_50px_rgba(0,0,0,0.5)] border-white/10">
+                <div class="flex justify-between items-center p-6 bg-white/5">
+                    <div id="playerTitleInfo" class="flex items-center gap-4">
+                        <!-- Info populated by JS -->
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <button id="backToBrowse" class="flex items-center gap-2 px-4 py-2 rounded-xl bg-white/5 text-white/50 text-[10px] font-black uppercase tracking-widest hover:bg-white/10 hover:text-white transition-all">
+                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M10 19l-7-7m0 0l7-7m-7 7h18"/></svg>
+                            Back to Browse
+                        </button>
+                        <button id="closePlayer" class="w-10 h-10 rounded-xl bg-white/5 text-white flex items-center justify-center hover:bg-red-600 transition-all">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                        </button>
+                    </div>
+                </div>
+                <div class="aspect-video w-full bg-black">
+                    <iframe id="videoPlayer" src="" class="w-full h-full" allowfullscreen allow="autoplay; fullscreen"></iframe>
+                </div>
+                <div id="playerInfo" class="p-8">
+                    <!-- Additional Info populated via JS -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Content Rows -->
+        <div class="space-y-20">
+            <section id="trending">
+                <div class="flex items-end justify-between mb-8">
+                    <h2 class="text-2xl font-black flex items-center gap-3">
+                        <span class="w-2 h-8 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)]"></span>
+                        Trending Today
+                    </h2>
+                    <span class="text-xs font-bold text-white/30 uppercase tracking-widest">Global Top 20</span>
+                </div>
+                <div id="trendingGrid" class="flex gap-6 overflow-x-auto no-scrollbar pb-6 mask-fade-right"></div>
+            </section>
+
+            <section id="popular">
+                <div class="flex items-end justify-between mb-8">
+                    <h2 class="text-2xl font-black flex items-center gap-3">
+                        <span class="w-2 h-8 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)]"></span>
+                        All Time Popular
+                    </h2>
+                </div>
+                <div id="popularGrid" class="flex gap-6 overflow-x-auto no-scrollbar pb-6"></div>
+            </section>
+
+            <section id="topRated">
+                <div class="flex items-end justify-between mb-8">
+                    <h2 class="text-2xl font-black flex items-center gap-3">
+                        <span class="w-2 h-8 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)]"></span>
+                        Top Rated Masterpieces
+                    </h2>
+                </div>
+                <div id="topRatedGrid" class="flex gap-6 overflow-x-auto no-scrollbar pb-6"></div>
+            </section>
+
+            <section id="cartoons">
+                <div class="flex items-end justify-between mb-8">
+                    <h2 class="text-2xl font-black flex items-center gap-3">
+                        <span class="w-2 h-8 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)]"></span>
+                        Iconic Animation
+                    </h2>
+                </div>
+                <div id="cartoonGrid" class="flex gap-6 overflow-x-auto no-scrollbar pb-6"></div>
+            </section>
+
+            <section id="anime">
+                <div class="flex items-end justify-between mb-8">
+                    <h2 class="text-2xl font-black flex items-center gap-3">
+                        <span class="w-2 h-8 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)]"></span>
+                        Anime Universe
+                    </h2>
+                </div>
+                <div id="animeGrid" class="flex gap-6 overflow-x-auto no-scrollbar pb-6"></div>
+            </section>
+
+            <section id="documentaries">
+                <div class="flex items-end justify-between mb-8">
+                    <h2 class="text-2xl font-black flex items-center gap-3">
+                        <span class="w-2 h-8 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)]"></span>
+                        Documentaries
+                    </h2>
+                </div>
+                <div id="documentaryGrid" class="flex gap-6 overflow-x-auto no-scrollbar pb-6"></div>
+            </section>
+
+            <section id="horror">
+                <div class="flex items-end justify-between mb-8">
+                    <h2 class="text-2xl font-black flex items-center gap-3">
+                        <span class="w-2 h-8 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)]"></span>
+                        Midnight Horror
+                    </h2>
+                </div>
+                <div id="horrorGrid" class="flex gap-6 overflow-x-auto no-scrollbar pb-6"></div>
+            </section>
+
+            <section id="sports" class="hidden">
+                <div class="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-8">
+                    <h2 class="text-2xl font-black flex items-center gap-3">
+                        <span class="w-2 h-8 bg-red-600 rounded-full shadow-[0_0_15px_rgba(220,38,38,0.5)]"></span>
+                        Live Sports
+                    </h2>
+                    <div id="sportsNav" class="flex flex-wrap gap-2">
+                        <!-- Populated via JS -->
+                    </div>
+                </div>
+                <div id="sportsGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+            </section>
+        </div>
+    </main>
+
+    <footer class="mt-20 py-16 border-t border-white/5 bg-white/[0.02]">
+        <div class="max-w-7xl mx-auto px-6 flex flex-col items-center">
+            <div class="flex items-center gap-3 mb-8">
+                <img src="../ChatGPT_Image_Jan_30__2026__07_58_23_PM-removebg-preview.png" class="w-8 h-8 object-contain opacity-50" alt="M">
+                <h1 class="text-xl font-black tracking-tighter uppercase text-white/50">Mosh</h1>
+            </div>
+            <p class="text-[10px] text-white/20 font-bold uppercase tracking-[0.4em] mb-4">The Ultimate Cinematic Interface</p>
+            <div class="flex gap-8 text-[10px] font-black uppercase tracking-widest text-white/40 mb-12">
+                <a href="#" class="hover:text-red-500 transition-colors">Privacy</a>
+                <a href="#" class="hover:text-red-500 transition-colors">Terms</a>
+                <a href="#" class="hover:text-red-500 transition-colors">DMCA</a>
+            </div>
+            <p class="text-[10px] text-white/10 max-w-2xl text-center leading-relaxed font-medium">
+                MOSH is an automated search engine for media content. We do not host any files on our servers. All content is provided by non-affiliated third parties.
+            </p>
+        </div>
+    </footer>
+
+    <script src="script.js"></script>
+</body>
+</html>
