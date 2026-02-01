@@ -20,6 +20,9 @@ const metadataContainer = document.getElementById('metadataContainer');
 const tvControls = document.getElementById('tvControls');
 const seasonSelect = document.getElementById('seasonSelect');
 const episodeSelect = document.getElementById('episodeSelect');
+const mobileTvControls = document.getElementById('mobileTvControls');
+const mobileSeasonSelect = document.getElementById('mobileSeasonSelect');
+const mobileEpisodeSelect = document.getElementById('mobileEpisodeSelect');
 const playerTypeSwap = document.getElementById('playerTypeSwap');
 const swapText = document.getElementById('swapText');
 const copyId = document.getElementById('copyId');
@@ -137,9 +140,11 @@ function updateMetadataUI(tmdbData) {
     
     if (tmdbData.type === 'tv') {
         tvControls.classList.remove('hidden');
+        if (mobileTvControls) mobileTvControls.classList.remove('hidden');
         setupTVControls(currentTitleData.id, tmdbData.id);
     } else {
         tvControls.classList.add('hidden');
+        if (mobileTvControls) mobileTvControls.classList.add('hidden');
     }
 }
 
@@ -217,25 +222,41 @@ async function setupTVControls(imdbId, tmdbId) {
             const currentS = parseInt(params.get('s')) || 1;
             const currentE = parseInt(params.get('e')) || 1;
 
-            seasonSelect.innerHTML = sData.seasons.map(s => `<option value="${s.season}" ${s.season == currentS ? 'selected' : ''}>Season ${s.season}</option>`).join('');
+            const seasonOptions = sData.seasons.map(s => `<option value="${s.season}" ${s.season == currentS ? 'selected' : ''}>Season ${s.season}</option>`).join('');
+            seasonSelect.innerHTML = seasonOptions;
+            if (mobileSeasonSelect) mobileSeasonSelect.innerHTML = seasonOptions;
             
             const loadEpisodes = async (sNum, selectE = 1) => {
                 const eResp = await fetch(`${IMDB_API_BASE}/titles/${imdbId}/episodes?season=${sNum}`);
                 const eData = await eResp.json();
                 if (eData.episodes) {
-                    episodeSelect.innerHTML = eData.episodes.map(e => `<option value="${e.episodeNumber}" ${e.episodeNumber == selectE ? 'selected' : ''}>Episode ${e.episodeNumber}</option>`).join('');
+                    const episodeOptions = eData.episodes.map(e => `<option value="${e.episodeNumber}" ${e.episodeNumber == selectE ? 'selected' : ''}>Episode ${e.episodeNumber}</option>`).join('');
+                    episodeSelect.innerHTML = episodeOptions;
+                    if (mobileEpisodeSelect) mobileEpisodeSelect.innerHTML = episodeOptions;
                 }
             };
 
             await loadEpisodes(currentS, currentE);
             
-            seasonSelect.onchange = () => {
-                loadEpisodes(seasonSelect.value, 1);
-                loadStream(tmdbId, 'tv', seasonSelect.value, 1);
+            const handleSeasonChange = (val) => {
+                loadEpisodes(val, 1);
+                loadStream(tmdbId, 'tv', val, 1);
+                // Sync mobile/desktop selects
+                if (seasonSelect.value !== val) seasonSelect.value = val;
+                if (mobileSeasonSelect && mobileSeasonSelect.value !== val) mobileSeasonSelect.value = val;
             };
-            episodeSelect.onchange = () => {
-                loadStream(tmdbId, 'tv', seasonSelect.value, episodeSelect.value);
+
+            const handleEpisodeChange = (val) => {
+                loadStream(tmdbId, 'tv', seasonSelect.value, val);
+                // Sync mobile/desktop selects
+                if (episodeSelect.value !== val) episodeSelect.value = val;
+                if (mobileEpisodeSelect && mobileEpisodeSelect.value !== val) mobileEpisodeSelect.value = val;
             };
+
+            seasonSelect.onchange = (e) => handleSeasonChange(e.target.value);
+            episodeSelect.onchange = (e) => handleEpisodeChange(e.target.value);
+            if (mobileSeasonSelect) mobileSeasonSelect.onchange = (e) => handleSeasonChange(e.target.value);
+            if (mobileEpisodeSelect) mobileEpisodeSelect.onchange = (e) => handleEpisodeChange(e.target.value);
         }
     } catch (e) {}
 }
