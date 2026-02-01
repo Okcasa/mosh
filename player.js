@@ -27,19 +27,48 @@ const playerTypeSwap = document.getElementById('playerTypeSwap');
 const swapText = document.getElementById('swapText');
 const copyId = document.getElementById('copyId');
 
-// --- REDIRECT TRACKER LOGIC ---
+// --- REDIRECT TRACKER & SHIELD LOGIC ---
 const tracker = document.getElementById('redirectTracker');
 const trackerToggle = document.getElementById('trackerToggle');
+const shieldToggle = document.getElementById('shieldToggle');
 const trackerList = document.getElementById('trackerList');
 const clearTracker = document.getElementById('clearTracker');
 const copyNotification = document.getElementById('copyNotification');
 
 let blockedUrls = [];
+let shieldActive = true;
 
 if (trackerToggle) {
     trackerToggle.onclick = () => {
         tracker.classList.toggle('active');
     };
+}
+
+if (shieldToggle) {
+    shieldToggle.onclick = () => {
+        shieldActive = !shieldActive;
+        updateShieldUI();
+    };
+}
+
+function updateShieldUI() {
+    if (shieldActive) {
+        shieldToggle.classList.remove('bg-red-600', 'border-red-400');
+        shieldToggle.classList.add('bg-green-600', 'border-green-400');
+        shieldToggle.title = "Redirect Shield: ON";
+        videoPlayer.sandbox = "allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-presentation allow-top-navigation-by-user-activation";
+    } else {
+        shieldToggle.classList.remove('bg-green-600', 'border-green-400');
+        shieldToggle.classList.add('bg-red-600', 'border-red-400');
+        shieldToggle.title = "Redirect Shield: OFF";
+        videoPlayer.removeAttribute('sandbox');
+    }
+    // Reload player to apply sandbox changes
+    const currentSrc = videoPlayer.src;
+    if (currentSrc && currentSrc !== "about:blank") {
+        videoPlayer.src = "about:blank";
+        setTimeout(() => videoPlayer.src = currentSrc, 100);
+    }
 }
 
 function addBlockedUrl(url) {
@@ -319,5 +348,8 @@ window.addEventListener('message', (event) => {
         // Not a Vidking event or malformed JSON
     }
 });
+
+// Initialize Shield
+updateShieldUI();
 
 initPlayer();

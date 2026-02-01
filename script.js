@@ -373,19 +373,47 @@ async function playSport(match) {
     }
 }
 
-// --- REDIRECT TRACKER LOGIC ---
+// --- REDIRECT TRACKER & SHIELD LOGIC ---
 
 const redirectTracker = document.getElementById('redirectTracker');
 const trackerToggle = document.getElementById('trackerToggle');
+const shieldToggle = document.getElementById('shieldToggle');
 const trackerList = document.getElementById('trackerList');
 const clearTracker = document.getElementById('clearTracker');
 const copyNotification = document.getElementById('copyNotification');
 
 let blockedUrls = [];
+let shieldActive = true;
 
-trackerToggle.onclick = () => {
-    redirectTracker.classList.toggle('active');
-};
+if (trackerToggle) {
+    trackerToggle.onclick = () => {
+        redirectTracker.classList.toggle('active');
+    };
+}
+
+if (shieldToggle) {
+    shieldToggle.onclick = () => {
+        shieldActive = !shieldActive;
+        updateShieldUI();
+    };
+}
+
+function updateShieldUI() {
+    const videoPlayer = document.getElementById('videoPlayer');
+    if (shieldToggle) {
+        if (shieldActive) {
+            shieldToggle.classList.remove('bg-red-600', 'border-red-400');
+            shieldToggle.classList.add('bg-green-600', 'border-green-400');
+            shieldToggle.title = "Redirect Shield: ON";
+            if (videoPlayer) videoPlayer.sandbox = "allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-presentation allow-top-navigation-by-user-activation";
+        } else {
+            shieldToggle.classList.remove('bg-green-600', 'border-green-400');
+            shieldToggle.classList.add('bg-red-600', 'border-red-400');
+            shieldToggle.title = "Redirect Shield: OFF";
+            if (videoPlayer) videoPlayer.removeAttribute('sandbox');
+        }
+    }
+}
 
 clearTracker.onclick = () => {
     blockedUrls = [];
@@ -464,5 +492,8 @@ function debounce(func, wait) {
 if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('sw.js').catch(() => {});
 }
+
+// Initialize Shield
+updateShieldUI();
 
 init();
