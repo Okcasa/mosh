@@ -1,5 +1,5 @@
 const IMDB_API_BASE = 'https://api.imdbapi.dev';
-const CINEMAOS_BASE = 'https://cinemaos.tech/player';
+const VIDKING_BASE = 'https://www.vidking.net/embed';
 
 // Specific Hardcoded Overrides
 const HARDCODED_IDS = {
@@ -257,9 +257,14 @@ function loadStream(id, type, season = 1, episode = 1) {
     const loader = document.getElementById('playerLoading');
     if (loader) loader.style.display = 'flex';
 
-    // Build the correct URL for CinemaOS
-    const url = type === 'tv' ? `${CINEMAOS_BASE}/${id}/${season}/${episode}` : `${CINEMAOS_BASE}/${id}`;
-    console.log("Constructed URL:", url);
+    // Build the correct URL for Vidking
+    // movie: /embed/movie/{tmdbId}
+    // tv: /embed/tv/{tmdbId}/{season}/{episode}
+    const mediaPath = type === 'tv' ? `tv/${id}/${season}/${episode}` : `movie/${id}`;
+    
+    // Add custom parameters: color=e50914 (MOSH red), autoPlay=true, nextEpisode=true
+    const url = `${VIDKING_BASE}/${mediaPath}?color=e50914&autoPlay=true&nextEpisode=true&episodeSelector=true`;
+    console.log("Constructed Vidking URL:", url);
     
     // Set source
     videoPlayer.src = url;
@@ -330,16 +335,29 @@ playerTypeSwap.onclick = () => {
     loadStream(currentTmdbData.id, currentTmdbData.type, 1, 1);
 };
 
-// Global Autoplay listener (Message from Cinemaos player)
+// Global Player Event Listener (Messages from Vidking player)
 window.addEventListener('message', (event) => {
-    // Cinemaos usually sends messages when video ends or progresses
-    // This is a placeholder for actual autoplay logic if the player supports postMessage signals
-    if (event.data && event.data.type === 'video_ended' && currentTmdbData?.type === 'tv') {
-        const nextE = parseInt(episodeSelect.value) + 1;
-        if (nextE <= episodeSelect.options.length) {
-            episodeSelect.value = nextE;
-            loadStream(currentTmdbData.id, 'tv', seasonSelect.value, nextE);
+    try {
+        const eventData = typeof event.data === 'string' ? JSON.parse(event.data) : event.data;
+        
+        if (eventData.type === 'PLAYER_EVENT') {
+            const playerEvent = eventData.data.event;
+            console.log(`Vidking Player Event: ${playerEvent}`, eventData.data);
+            
+            // Handle Autoplay Next Episode
+            if (playerEvent === 'ended' && currentTmdbData?.type === 'tv') {
+                const nextE = parseInt(episodeSelect.value) + 1;
+                if (nextE <= episodeSelect.options.length) {
+                    console.log(`Autoplaying next episode: ${nextE}`);
+                    // Trigger episode change
+                    if (mobileEpisodeSelect) mobileEpisodeSelect.value = nextE;
+                    episodeSelect.value = nextE;
+                    loadStream(currentTmdbData.id, 'tv', seasonSelect.value, nextE);
+                }
+            }
         }
+    } catch (e) {
+        // Not a Vidking event or malformed JSON
     }
 });
 
