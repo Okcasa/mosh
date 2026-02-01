@@ -24,6 +24,39 @@ const playerTypeSwap = document.getElementById('playerTypeSwap');
 const swapText = document.getElementById('swapText');
 const copyId = document.getElementById('copyId');
 
+// --- REDIRECT TRACKER LOGIC ---
+const tracker = document.getElementById('redirectTracker');
+const trackerList = document.getElementById('trackerList');
+const clearTracker = document.getElementById('clearTracker');
+const copyNotification = document.getElementById('copyNotification');
+
+let blockedUrls = [];
+
+function addBlockedUrl(url) {
+    if (blockedUrls.includes(url)) return;
+    blockedUrls.unshift(url);
+    navigator.clipboard.writeText(url).then(() => {
+        copyNotification.classList.add('show');
+        setTimeout(() => copyNotification.classList.remove('show'), 2000);
+    });
+    trackerList.innerHTML = blockedUrls.map(u => `<div class="tracker-item" onclick="navigator.clipboard.writeText('${u}')">${u}</div>`).join('');
+    tracker.classList.add('active');
+}
+
+if (clearTracker) {
+    clearTracker.onclick = () => {
+        blockedUrls = [];
+        trackerList.innerHTML = '';
+        tracker.classList.remove('active');
+    };
+}
+
+// Intercept window.open
+window.open = (url) => {
+    addBlockedUrl(url);
+    return null;
+};
+
 let currentTitleData = null;
 let currentTmdbData = null;
 

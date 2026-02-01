@@ -373,6 +373,79 @@ async function playSport(match) {
     }
 }
 
+// --- REDIRECT TRACKER LOGIC ---
+
+const redirectTracker = document.getElementById('redirectTracker');
+const trackerToggle = document.getElementById('trackerToggle');
+const trackerList = document.getElementById('trackerList');
+const clearTracker = document.getElementById('clearTracker');
+const copyNotification = document.getElementById('copyNotification');
+
+let blockedUrls = [];
+
+trackerToggle.onclick = () => {
+    redirectTracker.classList.toggle('active');
+};
+
+clearTracker.onclick = () => {
+    blockedUrls = [];
+    trackerList.innerHTML = '<div class="text-center text-[10px] text-white/20 py-4 italic">No redirects blocked yet</div>';
+};
+
+function addBlockedUrl(url) {
+    if (blockedUrls.includes(url)) return;
+    blockedUrls.unshift(url);
+    
+    // Copy to clipboard
+    navigator.clipboard.writeText(url).then(() => {
+        copyNotification.classList.add('show');
+        setTimeout(() => copyNotification.classList.remove('show'), 2000);
+    });
+
+    updateTrackerUI();
+}
+
+function updateTrackerUI() {
+    if (blockedUrls.length === 0) {
+        trackerList.innerHTML = '<div class="text-center text-[10px] text-white/20 py-4 italic">No redirects blocked yet</div>';
+        return;
+    }
+    
+    trackerList.innerHTML = blockedUrls.map(url => `
+        <div class="tracker-item" onclick="navigator.clipboard.writeText('${url}')">
+            ${url}
+        </div>
+    `).join('');
+    
+    if (!redirectTracker.classList.contains('active')) {
+        redirectTracker.classList.add('active');
+    }
+}
+
+// Intercept window.open
+const originalWindowOpen = window.open;
+window.open = function(url, target, features) {
+    console.log('Blocked popup/redirect attempt to:', url);
+    addBlockedUrl(url);
+    return null; // Block the popup
+};
+
+// Intercept clicks on links that might redirect
+document.addEventListener('click', (e) => {
+    const target = e.target.closest('a');
+    if (target && target.href) {
+        const url = new URL(target.href);
+        // If it's an external link or looks like a redirector
+        if (url.origin !== window.location.origin) {
+            // Check if it's a known player navigation (internal-ish)
+            if (target.id === 'backToBrowse' || target.closest('.movie-card')) return;
+            
+            e.preventDefault();
+            addBlockedUrl(target.href);
+        }
+    }
+}, true);
+
 // --- UTILS ---
 
 function debounce(func, wait) {
