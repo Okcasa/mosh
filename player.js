@@ -68,51 +68,10 @@ window.open = function(url) {
     return null;
 };
 
-// --- POPUP/MODAL AUTO-CLICKER ---
-// Override native dialogs in the top window just in case they are triggered
-const originalConfirm = window.confirm;
-window.confirm = function(msg) {
-    console.log('Intercepted confirm dialog:', msg);
-    if (msg.toLowerCase().includes('vpn') || msg.toLowerCase().includes('cinemaos')) {
-        addBlockedUrl('Blocked VPN Warning Dialog');
-        return false; // Automatically press "CANCEL"
-    }
-    return originalConfirm(msg);
-};
-
-const originalAlert = window.alert;
-window.alert = function(msg) {
-    console.log('Intercepted alert dialog:', msg);
-    if (msg.toLowerCase().includes('vpn') || msg.toLowerCase().includes('cinemaos')) {
-        addBlockedUrl('Blocked VPN Alert Dialog');
-        return;
-    }
-    originalAlert(msg);
-};
-
 // Sandbox the iframe to block top-level navigation (redirects)
 // Added allow-top-navigation-by-user-activation to allow some interaction-triggered navigations if needed
 // Removed sandbox for now to see if it fixes "not loading correctly", will re-enable if ads are too much
 // videoPlayer.sandbox = "allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-presentation allow-top-navigation-by-user-activation";
-
-// --- HTML MODAL AUTO-WATCHER ---
-// Some players show HTML-based modals instead of native dialogs.
-// We'll watch for any new elements added to the body that might be ads or warnings.
-const observer = new MutationObserver((mutations) => {
-    mutations.forEach((mutation) => {
-        mutation.addedNodes.forEach((node) => {
-            if (node.nodeType === 1) { // Element node
-                const text = node.innerText?.toLowerCase() || "";
-                if (text.includes('vpn') || text.includes('cinemaos')) {
-                    console.log('Blocked potential HTML modal:', node);
-                    node.style.display = 'none';
-                    addBlockedUrl('Blocked HTML VPN/Ad Modal');
-                }
-            }
-        });
-    });
-});
-observer.observe(document.body, { childList: true, subtree: true });
 
 let currentTitleData = null;
 let currentTmdbData = null;
