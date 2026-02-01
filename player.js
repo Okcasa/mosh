@@ -86,7 +86,8 @@ try {
 } catch(e) {}
 
 // Sandbox the iframe to block top-level navigation (redirects)
-videoPlayer.sandbox = "allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-presentation";
+// Added allow-top-navigation-by-user-activation as some players require it to function
+videoPlayer.sandbox = "allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-presentation allow-top-navigation-by-user-activation";
 
 let currentTitleData = null;
 let currentTmdbData = null;
@@ -315,12 +316,13 @@ playerTypeSwap.onclick = () => {
 // Global Autoplay listener (Message from Cinemaos player)
 window.addEventListener('message', (event) => {
     // Cinemaos usually sends messages when video ends or progresses
-    // This is a placeholder for actual autoplay logic if the player supports postMessage signals
     if (event.data && event.data.type === 'video_ended' && currentTmdbData?.type === 'tv') {
         const nextE = parseInt(episodeSelect.value) + 1;
         if (nextE <= episodeSelect.options.length) {
-            episodeSelect.value = nextE;
-            loadStream(currentTmdbData.id, 'tv', seasonSelect.value, nextE);
+            // Use the same logic as the grid buttons to ensure UI updates
+            const activeSeason = seasonSelect.value;
+            loadStream(currentTmdbData.id, 'tv', activeSeason, nextE);
+            setupTVControls(currentTitleData.id, currentTmdbData.id); // Refresh grid
         }
     }
 });
