@@ -86,8 +86,9 @@ try {
 } catch(e) {}
 
 // Sandbox the iframe to block top-level navigation (redirects)
-// Added allow-top-navigation-by-user-activation as some players require it to function
-videoPlayer.sandbox = "allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-presentation allow-top-navigation-by-user-activation";
+// Removed sandbox for now as it was causing the CinemaOS player to fail loading correctly
+// relying on parent-level blocks and trackers.
+videoPlayer.removeAttribute('sandbox');
 
 let currentTitleData = null;
 let currentTmdbData = null;
@@ -265,11 +266,13 @@ async function setupTVControls(imdbId, tmdbId) {
                 const eData = await eResp.json();
                 if (eData.episodes) {
                     activeEpisode = selectE;
-                    episodeGrid.innerHTML = eData.episodes.map(e => `
-                        <button class="ep-btn ${e.episodeNumber == activeEpisode ? 'active' : ''}" data-ep="${e.episodeNumber}">
-                            ${e.episodeNumber}
-                        </button>
-                    `).join('');
+                    episodeGrid.innerHTML = eData.episodes
+                        .filter(e => e.episodeNumber) // Filter out items with no episode number
+                        .map(e => `
+                            <button class="ep-btn ${e.episodeNumber == activeEpisode ? 'active' : ''}" data-ep="${e.episodeNumber}">
+                                ${e.episodeNumber}
+                            </button>
+                        `).join('');
 
                     episodeGrid.querySelectorAll('.ep-btn').forEach(btn => {
                         btn.onclick = () => {
