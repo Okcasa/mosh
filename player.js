@@ -21,8 +21,8 @@ const tvControls = document.getElementById('tvControls');
 const seasonSelect = document.getElementById('seasonSelect');
 const episodeSelect = document.getElementById('episodeSelect');
 const mobileTvControls = document.getElementById('mobileTvControls');
-const seasonTabs = document.getElementById('seasonTabs');
-const episodeGrid = document.getElementById('episodeGrid');
+const mobileSeasonSelect = document.getElementById('mobileSeasonSelect');
+const mobileEpisodeSelect = document.getElementById('mobileEpisodeSelect');
 const playerTypeSwap = document.getElementById('playerTypeSwap');
 const swapText = document.getElementById('swapText');
 const copyId = document.getElementById('copyId');
@@ -68,27 +68,8 @@ window.open = function(url) {
     return null;
 };
 
-// Intercept window.confirm (auto-cancel native popups like VPN warnings)
-window.confirm = function(message) {
-    console.log("Auto-cancelled confirmation dialog:", message);
-    addBlockedUrl("Blocked Native Popup: " + message);
-    return false; // Force "CANCEL"
-};
-
-// Even more aggressive blocking for CinemaOS specific behavior
-// We attempt to define a getter for window.confirm that cannot be easily overridden
-try {
-    Object.defineProperty(window, 'confirm', {
-        value: function() { return false; },
-        writable: false,
-        configurable: false
-    });
-} catch(e) {}
-
 // Sandbox the iframe to block top-level navigation (redirects)
-// Removed sandbox for now as it was causing the CinemaOS player to fail loading correctly
-// relying on parent-level blocks and trackers.
-videoPlayer.removeAttribute('sandbox');
+videoPlayer.sandbox = "allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-presentation";
 
 let currentTitleData = null;
 let currentTmdbData = null;
@@ -238,69 +219,44 @@ async function setupTVControls(imdbId, tmdbId) {
         const sData = await sResp.json();
         if (sData.seasons) {
             const params = new URLSearchParams(window.location.search);
-            let activeSeason = parseInt(params.get('s')) || 1;
-            let activeEpisode = parseInt(params.get('e')) || 1;
+            const currentS = parseInt(params.get('s')) || 1;
+            const currentE = parseInt(params.get('e')) || 1;
 
-            const renderSeasons = () => {
-                seasonTabs.innerHTML = sData.seasons.map(s => `
-                    <button class="season-tab ${s.season == activeSeason ? 'active' : ''}" data-season="${s.season}">
-                        S${s.season}
-                    </button>
-                `).join('');
-                
-                seasonTabs.querySelectorAll('.season-tab').forEach(tab => {
-                    tab.onclick = () => {
-                        activeSeason = tab.dataset.season;
-                        loadEpisodes(activeSeason, 1);
-                        loadStream(tmdbId, 'tv', activeSeason, 1);
-                        renderSeasons();
-                    };
-                });
-
-                // Sync desktop select
-                seasonSelect.value = activeSeason;
-            };
-
+            const seasonOptions = sData.seasons.map(s => `<option value="${s.season}" ${s.season == currentS ? 'selected' : ''}>Season ${s.season}</option>`).join('');
+            seasonSelect.innerHTML = seasonOptions;
+            if (mobileSeasonSelect) mobileSeasonSelect.innerHTML = seasonOptions;
+            
             const loadEpisodes = async (sNum, selectE = 1) => {
                 const eResp = await fetch(`${IMDB_API_BASE}/titles/${imdbId}/episodes?season=${sNum}`);
                 const eData = await eResp.json();
                 if (eData.episodes) {
-                    activeEpisode = selectE;
-                    episodeGrid.innerHTML = eData.episodes
-                        .filter(e => e.episodeNumber) // Filter out items with no episode number
-                        .map(e => `
-                            <button class="ep-btn ${e.episodeNumber == activeEpisode ? 'active' : ''}" data-ep="${e.episodeNumber}">
-                                ${e.episodeNumber}
-                            </button>
-                        `).join('');
-
-                    episodeGrid.querySelectorAll('.ep-btn').forEach(btn => {
-                        btn.onclick = () => {
-                            activeEpisode = btn.dataset.ep;
-                            loadStream(tmdbId, 'tv', sNum, activeEpisode);
-                            loadEpisodes(sNum, activeEpisode);
-                        };
-                    });
-
-                    // Sync desktop select
-                    episodeSelect.innerHTML = eData.episodes.map(e => `<option value="${e.episodeNumber}" ${e.episodeNumber == activeEpisode ? 'selected' : ''}>Episode ${e.episodeNumber}</option>`).join('');
+                    const episodeOptions = eData.episodes.map(e => `<option value="${e.episodeNumber}" ${e.episodeNumber == selectE ? 'selected' : ''}>Episode ${e.episodeNumber}</option>`).join('');
+                    episodeSelect.innerHTML = episodeOptions;
+                    if (mobileEpisodeSelect) mobileEpisodeSelect.innerHTML = episodeOptions;
                 }
             };
 
-            renderSeasons();
-            await loadEpisodes(activeSeason, activeEpisode);
+            await loadEpisodes(currentS, currentE);
+            
+            const handleSeasonChange = (val) => {
+                loadEpisodes(val, 1);
+                loadStream(tmdbId, 'tv', val, 1);
+                // Sync mobile/desktop selects
+                if (seasonSelect.value !== val) seasonSelect.value = val;
+                if (mobileSeasonSelect && mobileSeasonSelect.value !== val) mobileSeasonSelect.value = val;
+            };
 
-            seasonSelect.onchange = (e) => {
-                activeSeason = e.target.value;
-                loadEpisodes(activeSeason, 1);
-                loadStream(tmdbId, 'tv', activeSeason, 1);
-                renderSeasons();
+            const handleEpisodeChange = (val) => {
+                loadStream(tmdbId, 'tv', seasonSelect.value, val);
+                // Sync mobile/desktop selects
+                if (episodeSelect.value !== val) episodeSelect.value = val;
+                if (mobileEpisodeSelect && mobileEpisodeSelect.value !== val) mobileEpisodeSelect.value = val;
             };
-            episodeSelect.onchange = (e) => {
-                activeEpisode = e.target.value;
-                loadStream(tmdbId, 'tv', activeSeason, activeEpisode);
-                loadEpisodes(activeSeason, activeEpisode);
-            };
+
+            seasonSelect.onchange = (e) => handleSeasonChange(e.target.value);
+            episodeSelect.onchange = (e) => handleEpisodeChange(e.target.value);
+            if (mobileSeasonSelect) mobileSeasonSelect.onchange = (e) => handleSeasonChange(e.target.value);
+            if (mobileEpisodeSelect) mobileEpisodeSelect.onchange = (e) => handleEpisodeChange(e.target.value);
         }
     } catch (e) {}
 }
@@ -319,13 +275,12 @@ playerTypeSwap.onclick = () => {
 // Global Autoplay listener (Message from Cinemaos player)
 window.addEventListener('message', (event) => {
     // Cinemaos usually sends messages when video ends or progresses
+    // This is a placeholder for actual autoplay logic if the player supports postMessage signals
     if (event.data && event.data.type === 'video_ended' && currentTmdbData?.type === 'tv') {
         const nextE = parseInt(episodeSelect.value) + 1;
         if (nextE <= episodeSelect.options.length) {
-            // Use the same logic as the grid buttons to ensure UI updates
-            const activeSeason = seasonSelect.value;
-            loadStream(currentTmdbData.id, 'tv', activeSeason, nextE);
-            setupTVControls(currentTitleData.id, currentTmdbData.id); // Refresh grid
+            episodeSelect.value = nextE;
+            loadStream(currentTmdbData.id, 'tv', seasonSelect.value, nextE);
         }
     }
 });
