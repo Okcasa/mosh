@@ -116,13 +116,13 @@
             </div>
         </div>
 
-        <!-- Simplified Video Container with Loading State -->
-        <div id="playerWrapper" class="w-full bg-zinc-950 rounded-2xl overflow-hidden shadow-[0_0_80px_rgba(0,0,0,0.9)] border border-white/5 mb-10 relative group">
-            <div id="playerLoading" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-zinc-950">
+        <!-- Responsive Video Container Optimized for Mobile & Server Selection -->
+        <div id="playerWrapper" class="w-full bg-zinc-950 rounded-2xl shadow-[0_0_80px_rgba(0,0,0,0.9)] border border-white/5 mb-10 relative group overflow-visible">
+            <div id="playerLoading" class="absolute inset-0 z-10 flex flex-col items-center justify-center bg-zinc-950 rounded-2xl">
                 <div class="w-12 h-12 border-4 border-red-600/20 border-t-red-600 rounded-full animate-spin mb-4"></div>
                 <p class="text-[10px] font-black uppercase tracking-[0.3em] text-white/30 animate-pulse">Establishing Secure Stream...</p>
             </div>
-            <div class="relative w-full" style="padding-top: 56.25%;"> <!-- 16:9 Aspect Ratio -->
+            <div class="relative w-full h-[300px] sm:h-0 sm:pb-[56.25%] overflow-hidden rounded-2xl"> <!-- Fixed height on mobile, Aspect Ratio on desktop -->
                 <iframe id="videoPlayer" 
                         src="about:blank" 
                         class="absolute top-0 left-0 w-full h-full border-0" 
