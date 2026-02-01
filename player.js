@@ -246,8 +246,17 @@ async function getTmdbId(titleName, year, contentType = 'movie') {
 }
 
 function loadStream(id, type, season = 1, episode = 1) {
+    console.log(`Loading stream for ${type} ID: ${id}, S:${season} E:${episode}`);
+    
+    // Build the correct URL for CinemaOS
     const url = type === 'tv' ? `${CINEMAOS_BASE}/${id}/${season}/${episode}` : `${CINEMAOS_BASE}/${id}`;
-    videoPlayer.src = url;
+    
+    // Reset iframe before loading new source to avoid ghosting/blocking
+    videoPlayer.src = "about:blank";
+    
+    setTimeout(() => {
+        videoPlayer.src = url;
+    }, 100);
     
     // Update URL without reloading
     const newUrl = new URL(window.location);
