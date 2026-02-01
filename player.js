@@ -1,5 +1,5 @@
 const IMDB_API_BASE = 'https://api.imdbapi.dev';
-const VIDKING_BASE = 'https://www.vidking.net/embed';
+const CINEMAOS_BASE = 'https://cinemaos.tech/player';
 
 // Specific Hardcoded Overrides
 const HARDCODED_IDS = {
@@ -245,14 +245,11 @@ function loadStream(id, type, season = 1, episode = 1) {
     const loader = document.getElementById('playerLoading');
     if (loader) loader.style.display = 'flex';
 
-    // Build the correct URL for Vidking
-    // movie: /embed/movie/{tmdbId}
-    // tv: /embed/tv/{tmdbId}/{season}/{episode}
-    const mediaPath = type === 'tv' ? `tv/${id}/${season}/${episode}` : `movie/${id}`;
-    
-    // Add custom parameters: color=e50914 (MOSH red), autoPlay=true, nextEpisode=true
-    const url = `${VIDKING_BASE}/${mediaPath}?color=e50914&autoPlay=true&nextEpisode=true&episodeSelector=true`;
-    console.log("Constructed Vidking URL:", url);
+    // Build the correct URL for CinemaOS
+    // movie: /player/{tmdb_id}
+    // tv: /player/{tmdb_id}/{season}/{episode}
+    const url = type === 'tv' ? `${CINEMAOS_BASE}/${id}/${season}/${episode}` : `${CINEMAOS_BASE}/${id}`;
+    console.log("Constructed CinemaOS URL:", url);
     
     // Set source
     videoPlayer.src = url;
