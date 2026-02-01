@@ -26,14 +26,21 @@ const copyId = document.getElementById('copyId');
 
 // --- REDIRECT TRACKER LOGIC ---
 const tracker = document.getElementById('redirectTracker');
+const trackerToggle = document.getElementById('trackerToggle');
 const trackerList = document.getElementById('trackerList');
 const clearTracker = document.getElementById('clearTracker');
 const copyNotification = document.getElementById('copyNotification');
 
 let blockedUrls = [];
 
+if (trackerToggle) {
+    trackerToggle.onclick = () => {
+        tracker.classList.toggle('active');
+    };
+}
+
 function addBlockedUrl(url) {
-    if (blockedUrls.includes(url)) return;
+    if (!url || blockedUrls.includes(url)) return;
     blockedUrls.unshift(url);
     navigator.clipboard.writeText(url).then(() => {
         copyNotification.classList.add('show');
@@ -52,10 +59,14 @@ if (clearTracker) {
 }
 
 // Intercept window.open
-window.open = (url) => {
+const originalWindowOpen = window.open;
+window.open = function(url) {
     addBlockedUrl(url);
     return null;
 };
+
+// Sandbox the iframe to block top-level navigation (redirects)
+videoPlayer.sandbox = "allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-presentation";
 
 let currentTitleData = null;
 let currentTmdbData = null;
@@ -173,7 +184,14 @@ async function getTmdbId(titleName, year, contentType = 'movie') {
                 return cleanItemTitle === titleName.toLowerCase() && (year ? (itemYear === String(year) || rawTitle.includes(`(${year})`)) : true);
             }) || items[0];
             
-            return { id: bestMatch.id || bestMatch.tmdb_id, type: (bestMatch.name || bestMatch.firstAirDate || contentType === 'tv') ? 'tv' : 'movie' };
+            // Ensure we use the numeric TMDB ID, not the IMDB ID (tt...)
+            let tmdbId = bestMatch.id || bestMatch.tmdb_id;
+            if (typeof tmdbId === 'string' && tmdbId.startsWith('tt')) {
+                // If the primary id is an IMDB ID, look for a numeric one in other fields
+                tmdbId = bestMatch.tmdb_id || bestMatch.tmdbId || bestMatch.id;
+            }
+
+            return { id: tmdbId, type: (bestMatch.name || bestMatch.firstAirDate || contentType === 'tv') ? 'tv' : 'movie' };
         }
     } catch (e) {}
     return null;
