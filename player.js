@@ -68,6 +68,15 @@ window.open = function(url) {
     return null;
 };
 
+// Intercept window.confirm (auto-cancel native popups like VPN warnings)
+window.confirm = function(message) {
+    console.log("Auto-cancelled confirmation dialog:", message);
+    if (message && message.toLowerCase().includes('vpn')) {
+        addBlockedUrl("Blocked VPN Prompt: " + message);
+    }
+    return false; // Automatically press "CANCEL"
+};
+
 // Sandbox the iframe to block top-level navigation (redirects)
 videoPlayer.sandbox = "allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-presentation";
 
