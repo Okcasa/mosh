@@ -55,7 +55,7 @@ searchInput.addEventListener('input', debounce((e) => {
 
 async function searchSports(query) {
     try {
-        const resp = await fetch('https://line.cliveos.online/api/matches/live');
+        const resp = await fetch('https://streamed.pk/api/matches/all-today');
         const matches = await resp.json();
         const filteredMatches = matches.filter(m => 
             m.title.toLowerCase().includes(query) || 
@@ -85,8 +85,8 @@ function displaySportsGrid(matches, containerId) {
         const card = document.createElement('div');
         card.className = 'glass rounded-3xl p-1 group cursor-pointer hover:scale-[1.02] transition-all duration-500 overflow-hidden';
         
-        const homeBadge = match.teams?.home?.badge ? `https://line.cliveos.online/api/images/badge/${match.teams.home.badge}.webp` : '';
-        const awayBadge = match.teams?.away?.badge ? `https://line.cliveos.online/api/images/badge/${match.teams.away.badge}.webp` : '';
+        const homeBadge = match.teams?.home?.badge ? `https://streamed.pk/api/images/badge/${match.teams.home.badge}.webp` : '';
+        const awayBadge = match.teams?.away?.badge ? `https://streamed.pk/api/images/badge/${match.teams.away.badge}.webp` : '';
         
         const homeScore = (match.scores && match.scores.home !== undefined) ? match.scores.home : null;
         const awayScore = (match.scores && match.scores.away !== undefined) ? match.scores.away : null;
@@ -150,10 +150,22 @@ async function fetchSports(containerId, filter = 'all', isRefresh = false) {
     if (!isRefresh && container) container.innerHTML = `<div class="col-span-full p-12 text-center animate-pulse uppercase tracking-[0.4em] text-xs opacity-50">Syncing Live Satellites...</div>`;
     
     try {
-        const resp = await fetch('https://line.cliveos.online/api/matches/live');
+        // Fetch sports categories for filter
+        const sportsResp = await fetch('https://streamed.pk/api/sports');
+        const sportsList = await sportsResp.json();
+        
+        // Fetch matches based on filter
+        let matchesUrl = 'https://streamed.pk/api/matches/live';
+        if (filter !== 'all') {
+            matchesUrl = `https://streamed.pk/api/matches/${filter}`;
+        }
+        
+        const resp = await fetch(matchesUrl);
         const matches = await resp.json();
-        const categories = ['all', ...new Set(matches.map(m => m.category).filter(Boolean))];
-        sportsNav.innerHTML = categories.map(cat => `<button onclick="fetchSports('sportsGrid', '${cat}')" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${filter === cat ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white'}">${cat}</button>`).join('');
+
+        // Update nav
+        sportsNav.innerHTML = `<button onclick="fetchSports('sportsGrid', 'all')" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${filter === 'all' ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white'}">All Live</button>` + 
+        sportsList.map(sport => `<button onclick="fetchSports('sportsGrid', '${sport.id}')" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${filter === sport.id ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white'}">${sport.name}</button>`).join('');
         container.innerHTML = '';
         const filteredMatches = filter === 'all' ? matches : matches.filter(m => m.category === filter);
         if (filteredMatches.length === 0) {
@@ -170,7 +182,7 @@ async function playSport(match) {
     if (match.sources && match.sources.length > 0) {
         const source = match.sources[0];
         try {
-            const resp = await fetch(`https://line.cliveos.online/api/stream/${source.source}/${source.id}`);
+            const resp = await fetch(`https://streamed.pk/api/stream/${source.source}/${source.id}`);
             const streams = await resp.json();
             if (streams.length > 0) window.location.href = `player.html?type=sport&url=${encodeURIComponent(streams[0].embedUrl)}&title=${encodeURIComponent(match.title)}`;
         } catch (e) {
