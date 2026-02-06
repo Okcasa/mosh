@@ -4,6 +4,13 @@ const logoHome = document.getElementById('logoHome');
 const showSports = document.getElementById('showSports');
 const mobileHome = document.getElementById('mobileHome');
 const mobileSports = document.getElementById('mobileSports');
+const mobileSearchTrigger = document.getElementById('mobileSearchTrigger');
+const mobileSearchOverlay = document.getElementById('mobileSearchOverlay');
+const closeMobileSearch = document.getElementById('closeMobileSearch');
+const mobileSearchInput = document.getElementById('mobileSearchInput');
+const mobileSearchGrid = document.getElementById('mobileSearchGrid');
+const mobileShieldToggle = document.getElementById('mobileShieldToggle');
+const mobileTrackerToggle = document.getElementById('mobileTrackerToggle');
 const searchInput = document.getElementById('searchInput');
 const searchGrid = document.getElementById('searchGrid');
 const searchResultsSection = document.getElementById('searchResults');
@@ -42,6 +49,40 @@ showSports.onclick = () => {
 if (mobileHome) mobileHome.onclick = logoHome.onclick;
 if (mobileSports) mobileSports.onclick = showSports.onclick;
 
+// Shield & Tracker Handlers (Dual Support)
+const handleShieldToggle = () => { shieldActive = !shieldActive; updateShieldUI(); };
+const handleTrackerToggle = () => { redirectTracker.classList.toggle('active'); };
+
+if (mobileShieldToggle) mobileShieldToggle.onclick = handleShieldToggle;
+if (mobileTrackerToggle) mobileTrackerToggle.onclick = handleTrackerToggle;
+
+// Mobile Search Overlay Logic
+if (mobileSearchTrigger) {
+    mobileSearchTrigger.onclick = () => {
+        mobileSearchOverlay.classList.add('active');
+        mobileSearchInput.focus();
+    };
+}
+
+if (closeMobileSearch) {
+    closeMobileSearch.onclick = () => {
+        mobileSearchOverlay.classList.remove('active');
+        mobileSearchInput.value = '';
+        mobileSearchGrid.innerHTML = '';
+    };
+}
+
+if (mobileSearchInput) {
+    mobileSearchInput.addEventListener('input', debounce((e) => {
+        const query = e.target.value.trim().toLowerCase();
+        if (query.length > 2) {
+            searchSports(query, 'mobileSearchGrid');
+        } else {
+            mobileSearchGrid.innerHTML = '';
+        }
+    }, 500));
+}
+
 searchInput.addEventListener('input', debounce((e) => {
     const query = e.target.value.trim().toLowerCase();
     if (query.length > 2) {
@@ -53,7 +94,7 @@ searchInput.addEventListener('input', debounce((e) => {
 
 // --- CORE FUNCTIONS ---
 
-async function searchSports(query) {
+async function searchSports(query, containerId = 'searchGrid') {
     try {
         const resp = await fetch('https://streamed.pk/api/matches/all-today');
         const matches = await resp.json();
@@ -65,11 +106,17 @@ async function searchSports(query) {
         );
 
         if (filteredMatches.length > 0) {
-            searchResultsSection.classList.remove('hidden');
-            displaySportsGrid(filteredMatches, 'searchGrid');
-            searchResultsSection.scrollIntoView({ behavior: 'smooth' });
+            if (containerId === 'searchGrid') {
+                searchResultsSection.classList.remove('hidden');
+                displaySportsGrid(filteredMatches, containerId);
+                searchResultsSection.scrollIntoView({ behavior: 'smooth' });
+            } else {
+                displaySportsGrid(filteredMatches, containerId);
+            }
         } else {
-            searchResultsSection.classList.add('hidden');
+            const container = document.getElementById(containerId);
+            if (containerId === 'searchGrid') searchResultsSection.classList.add('hidden');
+            else if (container) container.innerHTML = '<div class="p-12 text-center text-white/20">No events found</div>';
         }
     } catch (e) {
         console.error('Search error:', e);
@@ -83,7 +130,7 @@ function displaySportsGrid(matches, containerId) {
     
     matches.forEach(match => {
         const card = document.createElement('div');
-        card.className = 'glass rounded-3xl p-1 group cursor-pointer hover:scale-[1.02] transition-all duration-500 overflow-hidden';
+        card.className = 'sports-card group animate-fade';
         
         const homeBadge = match.teams?.home?.badge ? `https://streamed.pk/api/images/badge/${match.teams.home.badge}.webp` : '';
         const awayBadge = match.teams?.away?.badge ? `https://streamed.pk/api/images/badge/${match.teams.away.badge}.webp` : '';
@@ -93,42 +140,46 @@ function displaySportsGrid(matches, containerId) {
         const hasScores = homeScore !== null && awayScore !== null;
 
         card.innerHTML = `
-            <div class="bg-zinc-950/50 rounded-[22px] p-6 border border-white/5 group-hover:border-red-600/30 transition-colors">
+            <div class="p-8">
                 <div class="flex items-center justify-between mb-8">
                     <div class="flex items-center gap-3">
                         <div class="flex items-center gap-2 px-3 py-1 bg-red-600/10 rounded-full border border-red-600/20">
                             <span class="w-1.5 h-1.5 bg-red-600 rounded-full animate-ping"></span>
-                            <span class="text-[10px] font-black text-red-500 uppercase tracking-widest">Live Now</span>
+                            <span class="text-[10px] font-black text-red-500 uppercase tracking-widest">Live</span>
                         </div>
-                        ${match.status ? `<span class="text-[10px] font-black text-white/40 uppercase tracking-widest">${match.status}</span>` : ''}
                     </div>
-                    <span class="text-[10px] font-bold text-white/20 uppercase tracking-[0.2em] group-hover:text-white/40 transition-colors">${match.category}</span>
+                    <span class="text-[10px] font-black text-white/20 uppercase tracking-[0.2em] group-hover:text-red-500 transition-colors">${match.category}</span>
                 </div>
-                <div class="flex items-center justify-between gap-4 ${hasScores ? 'mb-8' : 'mb-12'}">
+
+                <div class="flex items-center justify-between gap-6 mb-8">
                     <div class="flex flex-col items-center gap-4 flex-1">
-                        <div class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center p-3 border border-white/5 group-hover:bg-white/10 transition-all">
-                            <img src="${homeBadge}" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/64?text=?'">
+                        <div class="badge-container">
+                            <img src="${homeBadge}" class="w-full h-full object-contain drop-shadow-2xl" onerror="this.src='https://via.placeholder.com/64?text=?'">
                         </div>
-                        <span class="text-xs font-black text-center line-clamp-1 h-4 uppercase tracking-tighter">${match.teams?.home?.name || 'TBA'}</span>
-                        ${hasScores ? `<span class="text-5xl font-black text-white tracking-tighter">${homeScore}</span>` : ''}
+                        <span class="text-[11px] font-black text-center uppercase tracking-tight text-white/60 group-hover:text-white transition-colors">${match.teams?.home?.name || 'TBA'}</span>
+                        ${hasScores ? `<span class="text-4xl font-black text-white tracking-tighter">${homeScore}</span>` : ''}
                     </div>
-                    <div class="flex flex-col items-center justify-center pb-4">
-                        ${hasScores ? `<div class="text-[10px] font-black italic text-white/10 mb-2 uppercase">Score</div><div class="w-px h-12 bg-gradient-to-b from-transparent via-white/10 to-transparent"></div>` : `<div class="text-2xl font-black italic text-white/5 uppercase tracking-widest">VS</div>`}
+
+                    <div class="flex flex-col items-center">
+                        <div class="text-[10px] font-black text-red-600/40 mb-2 uppercase tracking-widest">VS</div>
+                        <div class="w-px h-12 bg-gradient-to-b from-transparent via-white/10 to-transparent"></div>
                     </div>
+
                     <div class="flex flex-col items-center gap-4 flex-1">
-                        <div class="w-16 h-16 rounded-2xl bg-white/5 flex items-center justify-center p-3 border border-white/5 group-hover:bg-white/10 transition-all">
-                            <img src="${awayBadge}" class="w-full h-full object-contain" onerror="this.src='https://via.placeholder.com/64?text=?'">
+                        <div class="badge-container">
+                            <img src="${awayBadge}" class="w-full h-full object-contain drop-shadow-2xl" onerror="this.src='https://via.placeholder.com/64?text=?'">
                         </div>
-                        <span class="text-xs font-black text-center line-clamp-1 h-4 uppercase tracking-tighter">${match.teams?.away?.name || 'TBA'}</span>
-                        ${hasScores ? `<span class="text-5xl font-black text-white tracking-tighter">${awayScore}</span>` : ''}
+                        <span class="text-[11px] font-black text-center uppercase tracking-tight text-white/60 group-hover:text-white transition-colors">${match.teams?.away?.name || 'TBA'}</span>
+                        ${hasScores ? `<span class="text-4xl font-black text-white tracking-tighter">${awayScore}</span>` : ''}
                     </div>
                 </div>
-                <div class="pt-6 border-t border-white/5">
-                    <h4 class="text-[11px] font-black uppercase tracking-tight text-center line-clamp-1 text-white/40 group-hover:text-white transition-colors mb-2">${match.title}</h4>
-                    <div class="flex items-center justify-center gap-2 opacity-30">
-                         <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                         <p class="text-[9px] font-bold uppercase tracking-widest">${new Date(match.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
+
+                <div class="pt-6 border-t border-white/5 flex items-center justify-between">
+                    <div class="flex items-center gap-2">
+                        <span class="material-icons-round text-red-600 text-sm">schedule</span>
+                        <p class="text-[10px] font-black uppercase tracking-widest text-white/40">${new Date(match.date).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</p>
                     </div>
+                    <span class="material-icons-round text-white/10 group-hover:text-red-600 group-hover:translate-x-1 transition-all">arrow_forward</span>
                 </div>
             </div>
         `;
@@ -164,15 +215,20 @@ async function fetchSports(containerId, filter = 'all', isRefresh = false) {
         const matches = await resp.json();
 
         // Update nav
-        sportsNav.innerHTML = `<button onclick="fetchSports('sportsGrid', 'all')" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${filter === 'all' ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white'}">All Live</button>` + 
-        sportsList.map(sport => `<button onclick="fetchSports('sportsGrid', '${sport.id}')" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${filter === sport.id ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white'}">${sport.name}</button>`).join('');
-        container.innerHTML = '';
-        const filteredMatches = filter === 'all' ? matches : matches.filter(m => m.category === filter);
-        if (filteredMatches.length === 0) {
-            container.innerHTML = `<div class="col-span-full p-12 text-center text-white/20 uppercase tracking-widest text-xs">No ${filter} events found at this time.</div>`;
-            return;
+        if (sportsNav) {
+            sportsNav.innerHTML = `<button onclick="fetchSports('sportsGrid', 'all')" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${filter === 'all' ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white'}">All Live</button>` + 
+            sportsList.map(sport => `<button onclick="fetchSports('sportsGrid', '${sport.id}')" class="px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest transition-all ${filter === sport.id ? 'bg-red-600 text-white shadow-lg shadow-red-600/30' : 'bg-white/5 text-white/40 hover:bg-white/10 hover:text-white'}">${sport.name}</button>`).join('');
         }
-        displaySportsGrid(filteredMatches, containerId);
+
+        if (container) {
+            container.innerHTML = '';
+            const filteredMatches = filter === 'all' ? matches : matches.filter(m => m.category === filter);
+            if (filteredMatches.length === 0) {
+                container.innerHTML = `<div class="col-span-full p-12 text-center text-white/20 uppercase tracking-widest text-xs">No ${filter} events found at this time.</div>`;
+                return;
+            }
+            displaySportsGrid(filteredMatches, containerId);
+        }
     } catch (e) {
         console.error('Fetch sports error:', e);
     }
@@ -204,32 +260,34 @@ let blockedUrls = [];
 let shieldActive = true;
 
 if (trackerToggle) {
-    trackerToggle.onclick = () => {
-        redirectTracker.classList.toggle('active');
-    };
+    trackerToggle.onclick = handleTrackerToggle;
 }
 
 if (shieldToggle) {
-    shieldToggle.onclick = () => {
-        shieldActive = !shieldActive;
-        updateShieldUI();
-    };
+    shieldToggle.onclick = handleShieldToggle;
 }
 
 function updateShieldUI() {
     const videoPlayer = document.getElementById('videoPlayer');
-    if (shieldToggle) {
+    const updateEl = (el) => {
+        if (!el) return;
         if (shieldActive) {
-            shieldToggle.classList.remove('bg-red-600', 'border-red-400');
-            shieldToggle.classList.add('bg-green-600', 'border-green-400');
-            shieldToggle.title = "Redirect Shield: ON";
-            if (videoPlayer) videoPlayer.sandbox = "allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-presentation allow-top-navigation-by-user-activation";
+            el.classList.remove('bg-red-600', 'border-red-400');
+            el.classList.add('bg-green-600', 'border-green-400');
+            el.title = "Redirect Shield: ON";
         } else {
-            shieldToggle.classList.remove('bg-green-600', 'border-green-400');
-            shieldToggle.classList.add('bg-red-600', 'border-red-400');
-            shieldToggle.title = "Redirect Shield: OFF";
-            if (videoPlayer) videoPlayer.removeAttribute('sandbox');
+            el.classList.remove('bg-green-600', 'border-green-400');
+            el.classList.add('bg-red-600', 'border-red-400');
+            el.title = "Redirect Shield: OFF";
         }
+    };
+
+    updateEl(shieldToggle);
+    updateEl(mobileShieldToggle);
+
+    if (videoPlayer) {
+        if (shieldActive) videoPlayer.sandbox = "allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-presentation allow-top-navigation-by-user-activation";
+        else videoPlayer.removeAttribute('sandbox');
     }
 }
 
