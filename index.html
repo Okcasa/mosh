@@ -208,13 +208,13 @@
 
     <!-- Mobile Bottom Navigation -->
     <div class="fixed bottom-0 left-0 right-0 z-50 md:hidden pb-[env(safe-area-inset-bottom)] bg-black/80 backdrop-blur-3xl border-t border-white/5 select-none touch-none">
-        <div class="flex items-center justify-around p-4">
+        <div class="flex items-center justify-center gap-12 p-4">
             <button id="mobileHome" class="flex flex-col items-center gap-1 text-red-500 active:scale-95 transition-transform touch-auto">
                 <span class="material-icons-round text-2xl pointer-events-none">home</span>
                 <span class="text-[9px] font-black uppercase tracking-widest pointer-events-none">Home</span>
             </button>
             
-            <!-- Shield & Tracker Moved to Bottom Nav Center -->
+            <!-- Shield & Tracker Integrated -->
             <div class="flex items-center gap-1 bg-white/5 p-1 rounded-2xl border border-white/5 touch-auto">
                 <button id="mobileShieldToggle" class="w-10 h-10 bg-green-600 rounded-xl flex items-center justify-center border border-green-400/50 shadow-lg active:scale-95 transition-transform" title="Shield: ON">
                     <span class="material-icons-round text-lg pointer-events-none">shield</span>
@@ -223,11 +223,6 @@
                     <span class="material-icons-round text-lg pointer-events-none">lock</span>
                 </button>
             </div>
-
-            <button id="mobileSearchTrigger" class="flex flex-col items-center gap-1 text-white/40 active:scale-95 transition-transform touch-auto">
-                <span class="material-icons-round text-2xl pointer-events-none">search</span>
-                <span class="text-[9px] font-black uppercase tracking-widest pointer-events-none">Search</span>
-            </button>
         </div>
     </div>
 
