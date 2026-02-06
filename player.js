@@ -56,14 +56,16 @@ function updateShieldUI() {
         shieldToggle.classList.remove('bg-red-600', 'border-red-400');
         shieldToggle.classList.add('bg-green-600', 'border-green-400');
         shieldToggle.title = "Redirect Shield: ON";
-        videoPlayer.sandbox = "allow-forms allow-pointer-lock allow-same-origin allow-scripts allow-presentation allow-top-navigation-by-user-activation";
     } else {
         shieldToggle.classList.remove('bg-green-600', 'border-green-400');
         shieldToggle.classList.add('bg-red-600', 'border-red-400');
         shieldToggle.title = "Redirect Shield: OFF";
-        videoPlayer.removeAttribute('sandbox');
     }
-    // Reload player to apply sandbox changes
+    
+    // Ensure sandbox is always removed as per requirement
+    videoPlayer.removeAttribute('sandbox');
+
+    // Reload player to apply changes (optional but kept for UI sync if needed)
     const currentSrc = videoPlayer.src;
     if (currentSrc && currentSrc !== "about:blank") {
         videoPlayer.src = "about:blank";
