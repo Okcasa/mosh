@@ -1,7 +1,7 @@
 {
-    "name": "MOSH Cinematic",
+    "name": "MOSH Live Sports",
     "short_name": "MOSH",
-    "description": "The Ultimate Cinematic Interface for Movies, Series, and Live Sports.",
+    "description": "The Ultimate Live Sports Streaming Interface.",
     "start_url": "index.html",
     "display": "standalone",
     "background_color": "#000000",

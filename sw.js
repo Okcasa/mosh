@@ -1,4 +1,4 @@
-const CACHE_NAME = 'mosh-v2';
+const CACHE_NAME = 'mosh-sports-v1';
 const ASSETS = [
     '/',
     'index.html',
